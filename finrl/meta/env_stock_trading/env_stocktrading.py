@@ -31,6 +31,7 @@ class StockTradingEnv(gym.Env):
         buy_cost_pct: list[float],
         sell_cost_pct: list[float],
         reward_scaling: float,
+        cash_penalty_percentage: float,
         state_space: int,
         action_space: int,
         tech_indicator_list: list[str],
@@ -45,6 +46,7 @@ class StockTradingEnv(gym.Env):
         mode="",
         iteration="",
     ):
+        print("StockTradingEnv - Init")
         self.day = day
         self.df = df
         self.stock_dim = stock_dim
@@ -54,6 +56,7 @@ class StockTradingEnv(gym.Env):
         self.buy_cost_pct = buy_cost_pct
         self.sell_cost_pct = sell_cost_pct
         self.reward_scaling = reward_scaling
+        self.cash_penalty_percentage = cash_penalty_percentage
         self.state_space = state_space
         self.action_space = action_space
         self.tech_indicator_list = tech_indicator_list
@@ -349,6 +352,11 @@ class StockTradingEnv(gym.Env):
             self.reward = end_total_asset - begin_total_asset
             self.rewards_memory.append(self.reward)
             self.reward = self.reward * self.reward_scaling
+
+            if self.state[0] < .2 * self.initial_amount:
+                neg_reward = (.2 * self.initial_amount - self.state[0]) * self.reward_scaling * self.cash_penalty_percentage
+                self.reward -= neg_reward
+
             self.state_memory.append(
                 self.state
             )  # add current state in state_recorder for each step
